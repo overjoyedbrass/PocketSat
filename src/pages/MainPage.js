@@ -7,7 +7,7 @@ import {
 } from '@chakra-ui/react'
 
 import {
-    MapContainer, TileLayer, Marker
+    MapContainer, TileLayer, Marker, useMap, useMapEvents
 } from "react-leaflet"
 
 import L from "leaflet";
@@ -19,6 +19,13 @@ const markerIcon = L.icon({
     iconSize: new L.Point(45, 60),
     iconAnchor: new L.Point(22.5, 60),
 })
+
+
+function ChangeView({ center, zoom }) {
+    const map = useMap();
+    map.setView(center);
+    return null;
+}
 
 export const MainPage = () => {
     const [center, setCenter] = React.useState({ lat: 48.14816, lng: 17.10674})
@@ -48,6 +55,17 @@ export const MainPage = () => {
         }),
         [],
     )
+
+    function MapEvents() {
+        useMapEvents({
+          click(e) {
+            // setState your coords here
+            // coords exist in "e.latlng.lat" and "e.latlng.lng"
+            setCenter(e.latlng)
+          },
+        });
+        return false;
+    }
 
     return (
         <VStack>
@@ -95,6 +113,8 @@ export const MainPage = () => {
                             style={{ width: "600px", height: "300px", border: "2px solid blue"}}
                             onClick={handleClick}
                         >
+                            <ChangeView center={center} />                            
+                            <MapEvents />
                             <Marker
                                 icon={markerIcon}
                                 position={[center.lat, center.lng]}
