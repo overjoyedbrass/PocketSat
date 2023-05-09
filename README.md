@@ -14,4 +14,4 @@ It correctly bundles React in production mode and optimizes the build for the be
 
 ### `App preview`
 
-![App preview image](https://github.com/overjoyedbrass/web-eph/blob/main/public/logo192.png)
+![App preview image](https://github.com/overjoyedbrass/web-eph/blob/main/public/example.png)
