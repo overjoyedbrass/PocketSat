@@ -1,7 +1,6 @@
 import React from "react";
 
 import { observatories } from "../data/observatories.js";
-import ShowObservatories from "../components/ShowObservatories.js";
 import {
     Button,
     FormLabel,
@@ -12,24 +11,14 @@ import {
     FormControl,
     FormHelperText,
     Divider,
+    NumberInput,
+    NumberInputField,
+    Text,
 } from "@chakra-ui/react";
 
-import {
-    MapContainer,
-    TileLayer,
-    Marker,
-} from "react-leaflet";
+import { Loader, Map } from "../components";
+import { useGetEphemerisMutation } from "../api/ephemerides/index.js";
 
-import L from "leaflet";
-
-import "leaflet/dist/leaflet.css";
-
-const markerIcon = L.icon({
-    iconUrl:
-        "https://static.vecteezy.com/system/resources/previews/009/267/042/original/location-icon-design-free-png.png",
-    iconSize: new L.Point(45, 60),
-    iconAnchor: new L.Point(22.5, 60),
-});
 
 function matchObservatory(query) {
     query = query.toLowerCase();
@@ -49,10 +38,16 @@ function matchObservatory(query) {
 
 export const MainPage = () => {
     const [center, setCenter] = React.useState({
-        lat: 48.14816,
-        lng: 17.10674,
-        alt: 20,
+        lat: "48.14816",
+        lng: "17.10674",
+        alt: "20",
     });
+
+    const [formState, setFormState] = React.useState({});
+    const handleChange = ({target: {name, value}}) => setFormState({...formState, [name]: value});
+
+
+    const [step, setStep] = React.useState(0);
     const markerRef = React.useRef();
 
     const [obsquery, setObsquery] = React.useState("");
@@ -73,21 +68,6 @@ export const MainPage = () => {
         setObsquery(obs.name);
     }
 
-    function handleChange({ target: { value, name } }) {
-        setCenter({ ...center, [name]: value });
-        setObsquery("Custom");
-    }
-
-    async function sendToServer(_event) {
-        alert("SENDING TO SERVER");
-        try {
-            const res = await fetch("http://localhost:8080/ephemerides");
-            alert("answer: " + (await res.text()));
-        } catch {
-            alert("server is probably offline");
-        }
-    }
-
     const eventHandlers = React.useMemo(
         () => ({
             dragend() {
@@ -100,148 +80,156 @@ export const MainPage = () => {
         }),
         [center]
     );
+    const [calculateEphemeris, { isLoading, data, reset }] = useGetEphemerisMutation();
 
-    return (
-        <VStack>
-            <HStack width="100%" justify="center" m={5} align="flex-start">
-                <VStack
-                    align="flex-start"
-                    border="1px solid grey"
-                    borderRadius="5px"
-                    p={3}
-                >
-                    <Heading size="md">Select time frame</Heading>
-                    <VStack>
-                        <FormControl>
-                            <FormLabel>Start date</FormLabel>
-                            <Input type="datetime-local" />
-                            <FormHelperText>
-                                Start of observing (UTC)
-                            </FormHelperText>
-                        </FormControl>
+    async function createResultObject() {
+        const input = {...formState, ...center, obs: obsquery};
+        calculateEphemeris(input);
+    }
 
-                        <FormControl>
-                            <FormLabel>End date</FormLabel>
-                            <Input type="datetime-local" />
-                            <FormHelperText>
-                                End of observing (UTC)
-                            </FormHelperText>
-                        </FormControl>
-
-                        <FormControl>
-                            <FormLabel>Step</FormLabel>
-                            <Input type="number" defaultValue={1}/>
-                            <FormHelperText>
-                                Step of each next calculation (seconds)
-                            </FormHelperText>
-                        </FormControl>
-                    </VStack>
-                </VStack>
-
-                <VStack
-                    align="flex-start"
-                    border="1px solid grey"
-                    borderRadius="5px"
-                    p={3}
-                    spacing="1em"
-                >
-                    <Heading size="md">Choose your location</Heading>
-                    <FormControl position="relative">
-                        <Input
-                            value={obsquery}
-                            onChange={handleObsQuery}
-                            ref={searchInput}
-                            onFocus={onFocus}
-                            onBlur={onBlur}
-                        />
-                        {!focused || obsquery.length <= 2 || (
-                            <VStack
-                                className="autocomplete"
-                                align="flex-start"
-                                divider={<Divider />}
-                            >
-                                {filteredObs.map((obs) => (
-                                    <div
-                                        key={`obs-${obs.code}`}
-                                        className="autocomplete-card"
-                                        onClick={() => setObs(obs)}
-                                    >
-                                        {obs.name} ({obs.code})
-                                    </div>
-                                ))}
-                                {filteredObs.length === 0 ? (
-                                    <div className="autocomplete-card">
-                                        No matches
-                                    </div>
-                                ) : null}
-                            </VStack>
-                        )}
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel>Latitude</FormLabel>
-                        <Input
-                            name="lat"
-                            type="number"
-                            value={center.lat}
-                            onChange={handleChange}
-                        />
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel>Longitude</FormLabel>
-                        <Input
-                            name="lng"
-                            type="number"
-                            value={center.lng}
-                            onChange={handleChange}
-                        />
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel>Altitude</FormLabel>
-                        <Input name="alt" value={center.alt} onChange={handleChange} type="number" />
-                    </FormControl>
-
-                    <MapContainer
-                        center={center}
-                        zoom={10}
-                        style={{
-                            width: "600px",
-                            height: "300px",
-                            border: "2px solid blue",
-                        }}
-                    >
-                        <ShowObservatories
-                            center={center}
-                            data={observatories}
-                            setCenter={setCenter}
-                            setObsquery={setObsquery}
-                        />
-                        <Marker
-                            icon={markerIcon}
-                            position={[center.lat, center.lng]}
-                            draggable={true}
-                            eventHandlers={eventHandlers}
-                            ref={markerRef}
-                        />
-                        <TileLayer url="https://api.maptiler.com/maps/basic/256/{z}/{x}/{y}.png?key=DiGXSou1X4F8AfvgZ1cu"></TileLayer>
-                    </MapContainer>
-                </VStack>
-
-                <VStack
-                    align="flex-start"
-                    border="1px solid grey"
-                    borderRadius="5px"
-                    p={3}
-                >
-                    <Heading size="md">Select object</Heading>
-                    <HStack>
-                        <FormControl>
-                            <FormLabel>Object name:</FormLabel>
-                            <Input defaultValue="37204"/>
-                        </FormControl>
-                    </HStack>
-                </VStack>
+    console.log(data);
+    
+    return (<>
+        {data ? 
+        (<VStack>
+            <Heading>
+                Result
+            </Heading>
+            <br />
+            <Text>
+                {data?.data.split('\n').map(line => (<><span>{line}</span><br /></>))}
+            </Text>
+            <Button onClick={reset}>Compute again</Button>
+            </VStack>) :
+        (<VStack>
+            <HStack>
+                {step > 0 ? <Button onClick={() => setStep(step - 1)}>Previous step</Button> : null}
+                {step < 2 ? <Button onClick={() => setStep(Math.min(step + 1, 2))}>Next step</Button> : null }
+                {step === 2 ? <Button onClick={() => createResultObject()}>Calculate ephemeris</Button> : null}
             </HStack>
-            <Button onClick={sendToServer}>SEND TO SERVER</Button>
-        </VStack>
+            {step === 0 ? 
+            (<VStack
+                align="flex-start"
+                border="1px solid grey"
+                borderRadius="5px"
+                maxWidth="400px"
+                minW="20vw"
+                alignItems="center"
+                p={3}
+            >
+                <Heading size="md">Select time frame</Heading>
+                <VStack width="100%">
+                    <FormControl>
+                        <FormLabel>Start date</FormLabel>
+                        <Input type="datetime-local" name="datefrom" onChange={handleChange} value={formState.datefrom} />
+                        <FormHelperText>
+                            Start of observing (UTC)
+                        </FormHelperText>
+                    </FormControl>
+
+                    <FormControl>
+                        <FormLabel>End date</FormLabel>
+                        <Input type="datetime-local" name="dateto" onChange={handleChange} value={formState.dateto} />
+                        <FormHelperText>
+                            End of observing (UTC)
+                        </FormHelperText>
+                    </FormControl>
+
+                    <FormControl>
+                        <FormLabel>Step</FormLabel>
+                        <Input type="number" defaultValue={1} name="step" onChange={handleChange} value={formState.step}/>
+                        <FormHelperText>
+                            Step of each next calculation (seconds)
+                        </FormHelperText>
+                    </FormControl>
+                </VStack>
+            </VStack>) : step === 1 ?
+
+            <VStack
+                align="flex-start"
+                border="1px solid grey"
+                borderRadius="5px"
+                p={3}
+                minW="20vw"
+                maxWidth="400px"
+                spacing="1em"
+            >
+                <Heading size="md">Choose your location</Heading>
+                <FormControl position="relative">
+                    <Input
+                        value={obsquery}
+                        onChange={handleObsQuery}
+                        ref={searchInput}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
+                    />
+                    {!focused || obsquery.length <= 2 || (
+                        <VStack
+                            className="autocomplete"
+                            align="flex-start"
+                            divider={<Divider />}
+                        >
+                            {filteredObs.map((obs) => (
+                                <div
+                                    key={`obs-${obs.code}`}
+                                    className="autocomplete-card"
+                                    onClick={() => setObs(obs)}
+                                >
+                                    {obs.name} ({obs.code})
+                                </div>
+                            ))}
+                            {filteredObs.length === 0 ? (
+                                <div className="autocomplete-card">
+                                    No matches
+                                </div>
+                            ) : null}
+                        </VStack>
+                    )}
+                </FormControl>
+                <FormControl>
+                    <FormLabel>Latitude</FormLabel>
+                    <NumberInput value={center.lat} 
+                        onChange={(value) => setCenter({...center, lat: value})}
+                        step={"0.01"}
+                    >
+                        <NumberInputField  />
+                    </NumberInput>
+                </FormControl>
+                <FormControl>
+                    <FormLabel>Longitude</FormLabel>
+                    <NumberInput value={center.lng} onChange={(value) => setCenter({...center, lng: value})} step={"0.01"}>
+                        <NumberInputField />
+                    </NumberInput>
+                </FormControl>
+                <FormControl>
+                    <FormLabel>Altitude</FormLabel>
+                    <NumberInput value={center.alt} onChange={(value) => setCenter({...center, alt: value})} step={"0.01"}>
+                        <NumberInputField />
+                    </NumberInput>
+                </FormControl>
+
+                <Map center={center} setCenter={setCenter} markerRef={markerRef} eventHandlers={eventHandlers} setObsquery={setObsquery} />
+            </VStack> : 
+            (<VStack
+                align="flex-start"
+                border="1px solid grey"
+                borderRadius="5px"
+                maxWidth="400px"
+                minW="20vw"
+                p={3}
+                >
+                <Heading size="md">Select object</Heading>
+                <HStack width="100%">
+                    <FormControl>
+                        <FormLabel>Object name:</FormLabel>
+                        <Input defaultValue="37204" name="objectid" onChange={handleChange} value={formState.objectid} />
+                    </FormControl>
+                </HStack>
+                </VStack>            
+            )}
+
+            </VStack>) }
+            { !isLoading || <Loader loadInformation={"Calculating ephemeris"}/> }
+            </>
     );
 };
