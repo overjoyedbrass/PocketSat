@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+const baseURL = "http://localhost:8080/";
 
 // Define a service using a base URL and expected endpoints
 export const ephemeridesApi = createApi({
-    reducerPath: 'pokemonApi',
-    baseQuery: fetchBaseQuery({ baseUrl: 'http://192.168.1.14:8080/' }),
+    reducerPath: 'ephemeridesApi',
+    baseQuery: fetchBaseQuery({ baseUrl: baseURL }),
     endpoints: (builder) => ({
         getEphemeris: builder.mutation({
             query: (data) => ({
