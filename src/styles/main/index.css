@@ -11,30 +11,18 @@ code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
         monospace;
 }
-
-html {
-    background-color: rgba(14, 8, 35);
+#root {        
+    background: rgb(59,48,82);
+    background: -moz-linear-gradient(53deg, rgba(59,48,82,1) 0%, rgba(2,0,70,1) 50%, rgba(71,78,136,1) 100%);
+    background: -webkit-linear-gradient(53deg, rgba(59,48,82,1) 0%, rgba(2,0,70,1) 50%, rgba(71,78,136,1) 100%);
+    background: linear-gradient(53deg, rgba(59,48,82,1) 0%, rgba(2,0,70,1) 50%, rgba(71,78,136,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#3b3052",endColorstr="#474e88",GradientType=1);
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 100vh;
+    background-position: center;
+    background-attachment: fixed;
 }
-
-.autocomplete {
-    display: flex;
-    max-height: 150px;
-    overflow: auto;
-    flex-direction: column;
-    border: 2px solid rgb(163, 163, 163);
-    border-radius: 5px;
-    background: rgb(39, 39, 39);
-    padding: 1em;
-    position: absolute;
-    z-index: 5;
-    width: 100%;
-}
-
-.autocomplete-card {
-    cursor: pointer;
-    width: 100%;
-}
-
 
 .leaflet-div-icon {
     background: none !important;
@@ -51,4 +39,11 @@ html {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.leaflet-layer,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }

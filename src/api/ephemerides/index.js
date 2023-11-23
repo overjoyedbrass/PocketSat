@@ -4,7 +4,13 @@ const baseURL = "http://localhost:8080/";
 // Define a service using a base URL and expected endpoints
 export const ephemeridesApi = createApi({
     reducerPath: 'ephemeridesApi',
-    baseQuery: fetchBaseQuery({ baseUrl: baseURL }),
+    baseQuery: fetchBaseQuery({ 
+        baseUrl: baseURL,
+        prepareHeaders: (headers) => {
+            headers.set("Content-Type", "application/json");
+            return headers;
+        },
+     }),
     endpoints: (builder) => ({
         getEphemeris: builder.mutation({
             query: (data) => ({

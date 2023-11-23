@@ -1,45 +1,57 @@
-import { Button, Heading, Table, TableCaption, TableContainer, Tbody, Text, Textarea, Tfoot, Th, Thead, Tr, VStack } from "@chakra-ui/react";
+import { Button, Heading, Table, TableContainer, Tbody, Th, Thead, Tr, VStack } from "@chakra-ui/react";
 import React from "react";
 import { useGetEphemerisMutation } from "../../api/ephemerides/index.js";
-import { selectFormState } from "../../store/formInput/formInput.js";
+import { selectFormState as selectLocationForm } from "../../store/formInput/locationForm.js";
+import { selectFormState as selectTimeForm } from "../../store/formInput/timeForm.js";
+import { selectFormState as selectObjectForm } from "../../store/formInput/objectForm.js";
 import { useSelector } from "react-redux";
-import { Loader } from "../../components";
+import { CollapseJson, Loader, MyTable } from "../../components";
 import { useNavigate } from "react-router-dom";
-import {  } from "date-fns";
 
 
 export const ResultPage = () => {
     const [calculateEphemeris, { isLoading, data }] = useGetEphemerisMutation();
-    const formState = useSelector(selectFormState);
+
+    const locationForm = useSelector(selectLocationForm);
+    const timeForm = useSelector(selectTimeForm);
+    const objectForm = useSelector(selectObjectForm);
+    const formState = {
+        ...locationForm,
+        ...timeForm,
+        ...objectForm,
+    }
+    formState.observatoryName = formState.observatoryName || "Custom";
     const navigate = useNavigate();
+    const missingValue = Object.values(formState).includes("")
 
     function getResults() {
+        if(missingValue) {
+            navigate("/")
+        }
         calculateEphemeris(formState);
     }
 
     if(isLoading) {
         return <Loader loadInformation={"Calculating results. . ."}/>;
     }
-
-    const dumpRows = [
-        [999, 999, 999, 999, 999, 999, 999, 999, 999],
-        [999, 999, 999, 999, 999, 999, 999, 999, 999],
-        [999, 999, 999, 999, 999, 999, 999, 999, 999],
-        [999, 999, 999, 999, 999, 999, 999, 999, 999],
-        [999, 999, 999, 999, 999, 999, 999, 999, 999],
-        [999, 999, 999, 999, 999, 999, 999, 999, 999],
-        [999, 999, 999, 999, 999, 999, 999, 999, 999],
-        [999, 999, 999, 999, 999, 999, 999, 999, 999],
+    const columns = [
+        "Date (UTC)",
+        "Az [deg]",
+        "h [deg]",
+        "R.A. [deg]",
+        "dec [deg]",
+        "Phase [deg]",
+        "Obs. r. [km]",
+        "Angular [arcm/min]",
+        "Shadow",
     ];
+
     return (<VStack>
         <Heading>
             Summary
         </Heading>
         <TableContainer borderRadius="10px">
             <Table variant="simple">
-                <TableCaption>
-                    <Button onClick={() => navigate("/", {state: formState})}>Change inputs</Button>
-                </TableCaption>
                 <Thead>
                     <Tr>
                         <Th>Start time</Th>
@@ -64,58 +76,14 @@ export const ResultPage = () => {
                 </Tbody>
             </Table>
         </TableContainer>
+        <Button onClick={() => navigate("/", {state: formState})}>{missingValue ? "Fill all input fields" : "Change inputs" }</Button>
 
         <Heading pt={10}>
             Results
         </Heading>
 
-            {data == null ? <Button onClick={getResults}>Calculate ephemeris</Button> : null}
-            {!data || (
-                <TableContainer>
-                    <Table variant="simple">
-                        <TableCaption>
-                            This is table caption.
-                        </TableCaption>
-                    <Thead>
-                        <Tr>
-                            <Th>Date (UTC)</Th>
-                            <Th>Az [deg]</Th>
-                            <Th>h [deg]</Th>
-                            <Th>R.A. [deg]</Th>
-                            <Th>dec [deg]</Th>
-                            <Th>Phase [deg]</Th>
-                            <Th>Obs. r. [km]</Th>
-                            <Th>Angular [arcm/min]</Th>
-                            <Th>Shadow</Th>
-                        </Tr>
-                    </Thead>
-                    <Tbody>
-                        {dumpRows.map(dumpRow => (
-                            <Tr>
-                                {dumpRow.map(field => (
-                                    <Th>{field}</Th>
-                                ))}
-                            </Tr>
-                        ))}
-                    </Tbody>
-                    <Tfoot>
-                        <Tr>
-                            <Th>Date (UTC)</Th>
-                            <Th>Az [deg]</Th>
-                            <Th>h [deg]</Th>
-                            <Th>R.A. [deg]</Th>
-                            <Th>dec [deg]</Th>
-                            <Th>Phase [deg]</Th>
-                            <Th>Obs. r. [km]</Th>
-                            <Th>Angular [arcm/min]</Th>
-                            <Th>Shadow</Th>
-                        </Tr>
-                    </Tfoot>
-                </Table>
-                </TableContainer>
-            )}
-
-
-            {!data || <Textarea value={data?.data} />}
+            {data == null && !missingValue ? <Button onClick={getResults}>Calculate ephemeris</Button> : null}
+            {!data || (<MyTable data={data} columns={columns} />)}
+            {!data || <CollapseJson data={data} />}
         </VStack>)
 }

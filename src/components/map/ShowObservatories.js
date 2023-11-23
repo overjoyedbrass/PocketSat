@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import L from "leaflet";
 import useSupercluster from "use-supercluster";
 import { Marker, useMap, Tooltip } from "react-leaflet";
+import { useDispatch } from "react-redux";
+import { updateForm } from "../../store/formInput/locationForm";
 
 const icons = {};
 const fetchIcon = (count, size) => {
@@ -21,12 +23,16 @@ const observatoryIcon = L.icon({
     iconAnchor: new L.Point(15, 30),
 });
 
-function ShowObservatories({ data, setCenter, setObsquery }) {
+function ShowObservatories({ data }) {
     const maxZoom = 22;
     const [bounds, setBounds] = useState(null);
     const [zoom, setZoom] = useState(12);
     const map = useMap();
-    
+    const dispatch = useDispatch();
+
+    function setCenter(location) {
+        dispatch(updateForm(location));
+    }
 
     const updateMap = React.useCallback(() => {
         const b = map.getBounds();
@@ -48,9 +54,9 @@ function ShowObservatories({ data, setCenter, setObsquery }) {
     }, [updateMap]);
 
     useEffect(() => {
-        map.on("move", onMove);
+        map.on("moveend", onMove);
         return () => {
-            map.off("move", onMove);
+            map.off("moveend", onMove);
         };
     }, [map, onMove]);
 
@@ -120,9 +126,8 @@ function ShowObservatories({ data, setCenter, setObsquery }) {
                         icon={observatoryIcon}
                         eventHandlers={{
                             click: () => {
-                                setCenter({lat: latitude, lng: longitude, alt: cluster.properties.alt});
-                                setObsquery(cluster.properties.name);
-                                map.setView(
+                                setCenter({lat: latitude, lng: longitude, alt: cluster.properties.alt, observatoryName: cluster.properties.name});
+                                map.flyTo(
                                     [latitude, longitude],
                                 );
                             },

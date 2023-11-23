@@ -2,13 +2,17 @@ import { configureStore } from '@reduxjs/toolkit'
 // Or from '@reduxjs/toolkit/query/react'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import { ephemeridesApi } from '../api/ephemerides'
-import formInputReducer from './formInput/formInput'
+import timeFormReducer from './formInput/timeForm'
+import locationFormReducer from './formInput/locationForm'
+import objectFormReducer from './formInput/objectForm'
 
 export const store = configureStore({
   reducer: {
     // Add the generated reducer as a specific top-level slice
     [ephemeridesApi.reducerPath]: ephemeridesApi.reducer,
-    formInput: formInputReducer,
+    timeForm: timeFormReducer,
+    locationForm: locationFormReducer,
+    objectForm: objectFormReducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.

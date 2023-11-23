@@ -1,21 +1,22 @@
 import { Divider, FormControl, FormHelperText, FormLabel, Heading, Input, VStack } from "@chakra-ui/react";
 import React from "react";
-import { updateFormInput } from "../../store/formInput/formInput";
+import { updateForm } from "../../store/formInput/timeForm";
 import { useDispatch } from "react-redux";
+import { format, add } from "date-fns";
 
 //must be inside of <form>{here}</form>
 export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
     const [formState, setFormState] = React.useState({
-        datefrom: datefrom ?? "",
-        dateto: dateto ?? "",
-        step: step ?? 1,
+        datefrom: datefrom ?? format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+        dateto: dateto ?? format(add(new Date(), {hours: 1}), "yyyy-MM-dd'T'HH:mm"),
+        step: step ?? 10,
     });
     const dispatch = useDispatch();
     const handleChange = ({target: { name, value }}) => {
         setFormState((prev) => ({ ...prev, [name]: value }));
     }
     React.useEffect(() => {
-        dispatch(updateFormInput(formState));
+        dispatch(updateForm(formState));
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formState]);
 
@@ -23,7 +24,7 @@ export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
                 align="flex-start"
                 alignItems="center"
                 flex={1}
-                p={3}>
+                p={3} w="100%">
                 <Heading size="md">Select time frame</Heading>
                 <Divider />
                 <VStack width="100%">
@@ -31,6 +32,7 @@ export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
                         <FormLabel>Start date</FormLabel>
                         <Input 
                             type="datetime-local" 
+                            variant="filled"
                             name="datefrom" 
                             onChange={handleChange} 
                             value={formState.datefrom} 
@@ -47,6 +49,7 @@ export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
                         <Input 
                             type="datetime-local" 
                             name="dateto" 
+                            variant="filled"
                             onChange={handleChange} 
                             value={formState.dateto} 
                             min={formState.datefrom}
@@ -61,6 +64,7 @@ export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
                         <Input 
                             type="number" 
                             name="step" 
+                            variant="filled"
                             onChange={handleChange} 
                             value={formState.step}
                             min={1}
@@ -68,7 +72,7 @@ export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
                             required={true}
                         />
                         <FormHelperText>
-                            Divide interval into steps
+                            Exposition time (seconds)
                         </FormHelperText>
                     </FormControl>
                 </VStack>

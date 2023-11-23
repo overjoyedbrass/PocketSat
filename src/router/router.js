@@ -15,9 +15,7 @@ export const MyRouter = ({ children, ...props }) => {
             <Routes>
                 {links.map((link) => {
                     const PageElement = pathElements[link];
-                    return (
-                        <Route key={link} path={link} element={<PageElement />} />);
-                })}
+                    return (<Route key={link} path={link} element={<PageElement />} />);})}
             </Routes>
     </BrowserRouter>)
 }
