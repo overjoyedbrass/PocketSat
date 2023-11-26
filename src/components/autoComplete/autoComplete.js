@@ -1,91 +1,179 @@
+/* eslint-disable eqeqeq */
 import React from "react";
-import { Box, Divider, FormControl, FormLabel, HStack, Input, VStack } from "@chakra-ui/react";
-import { useSelector } from "react-redux";
-import { selectFormState } from "../../store/formInput/locationForm";
+import { Box, Divider, FormControl, FormLabel, HStack, IconButton, Input, InputGroup, InputRightElement, Spinner, VStack } from "@chakra-ui/react";
+import { MdClear } from "react-icons/md";
 
-const AutoCompleteCard = ({children, onClick}) => {
+const AutoCompleteCard = ({children, ...props}) => {
     return (<Box 
         className="autocomplete-card" 
         cursor="pointer" 
-        w="100%" p={1} 
-        onClick={onClick}>
+        w="100%" p={1}
+        m={0}
+        _hover={{
+            bg: "teal",
+            color: "yellow",
+            transition: "background-color 200ms ease-out"
+        }}
+        _focus={{
+            outline: "none",
+            bg: "gray",
+            color: "white",
+            transition: "background-color 200ms ease-out"
+        }}
+        borderRadius={"5px"}
+        {...props}>
         {children}
     </Box>)
 }
 
-export const AutoComplete = ({ children, getFilteredData, format, minQueryLength=2, sideEffect=null }) => {
-    const [focused, setFocused] = React.useState(false);
-    const [query, setQuery] = React.useState("");
-    const [childrenFocus, setChildrenFocus] = React.useState(false);
-    const obsName = useSelector(selectFormState).observatoryName;
+function ifNaNZero(number) {
+    return isNaN(number) ? 0 : number;
+}
 
+export const AutoComplete = (
+    {title, children, getFilteredData, format, 
+        formatId, minQueryLength=2, 
+        sideEffect=null, apiCall=null, 
+        isLoading=false, titleRight=null, outsideControl="",
+        childPosition="absolute"
+    }) => {
+    const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+    const [focusIndex, setFocusIndex] = React.useState(-1);
+    const [query, setQuery] = React.useState("");
+    const [timeoutId, setTimeoutId]  = React.useState(null);
+
+    const formRef = React.useRef(null);
+    const searchInput = React.useRef(null);
+    const resultsDiv = React.useRef(null);
+    
     const onFocus = () => {
-        window.scrollTo({
-            top: searchInput.current.offsetTop,
-            behavior: "smooth"
-        });
-        setFocused(true);
+        searchInput.current.scrollIntoView({ behavior: "smooth" });
     }
     const onBlur = () => {
-        if(!childrenFocus) {
-            setFocused(false);
-        }
+        forceUpdate();
     }
     function applyItem(obs) {
-        setQuery(obs.name);
-        setChildrenFocus(false);
-        setFocused(false);
+        setQuery(format(obs));
         if(sideEffect) {
             sideEffect(obs);
         }
+        document.activeElement.blur();
     }
 
-    function handleObsQuery({ target: { value } }) {
+    function handleQuery({ target: { value } }) {
+        if(!apiCall) {
+            setQuery(value);
+            return;
+        }
+
+        if(timeoutId) {
+            clearInterval(timeoutId);
+        }
+
+        if(value.length >= minQueryLength) {
+            setTimeoutId(setTimeout(() => {
+                apiCall(value);
+                setTimeoutId(null);
+            }, 500));
+        }
         setQuery(value);
     }
 
     React.useEffect(() => {
-        setQuery(obsName);
-    }, [obsName]);
+        if(outsideControl) setQuery(outsideControl);
+    }, [outsideControl]);
     
     let filteredData;
-    const searchInput = React.useRef(null);
     if (query.length >= minQueryLength) {
         filteredData = getFilteredData(query);
     }
 
-    return (<FormControl position="relative" onFocus={onFocus} onBlur={onBlur}>
-    <FormLabel>Observation location</FormLabel>
+    React.useEffect(() => {
+        resultsDiv?.current?.scrollIntoView({behavior: "smooth"});
+    }, [filteredData?.length]);
+
+    const keyDownListener = (e) => {
+        const key = e.key;
+        switch(key){
+            case "ArrowUp": case "ArrowDown": case "ArrowLeft": case "ArrowRight": 
+                case "Space": e.preventDefault(); break;
+            default: break; // do not block other keys
+        }
+        if(key == "ArrowDown") {
+            const index = Math.min(ifNaNZero(filteredData?.length-1) ?? 0, focusIndex+1);
+            const current = document.getElementById(`ac${index}`);
+            setFocusIndex(index);
+            if(current) current.focus();
+        } else if (key == "ArrowUp") {
+            const index = Math.max(0, focusIndex-1);
+            const current = document.getElementById(`ac${index}`);
+            setFocusIndex(index);
+            if(current) current.focus();
+        } else if (key == "Enter") {
+            const current = document.activeElement;
+            current?.click();
+            current?.blur();
+            formRef?.current?.blur();
+        } else if(key == "Escape") {
+            const current = document.activeElement;
+            current?.blur();
+            forceUpdate();
+        }
+        resultsDiv?.current?.scrollIntoView({behavior: "smooth"});
+    }
+
+    const focused = formRef?.current?.contains(document.activeElement);
+
+    return (<FormControl position="relative" onFocus={onFocus} onBlur={onBlur} ref={formRef} onKeyDown={keyDownListener} minHeight="fit-content">
+        {titleRight ? 
+        <HStack w="100%" justify={"space-between"} mb={2}>
+            <FormLabel m={0}>{title}</FormLabel>
+            {titleRight}
+        </HStack> :
+        <FormLabel>{title}</FormLabel>
+        }
     <HStack>
+        <InputGroup>
         <Input
             variant="filled"
             placeholder="Observatory name"
             value={query}
-            onChange={handleObsQuery}
+            onChange={handleQuery}
             ref={searchInput}
+            onKeyPress={(e) => { e.key === 'Enter' && e.preventDefault(); }}
+            tabIndex={0}
+            onFocus={() => {setFocusIndex(-1)}}
         />
+        {!query || <InputRightElement>
+            {(isLoading || timeoutId) && query.length >= minQueryLength ? <Spinner size="md" /> :
+            <IconButton variant="ghost" onClick={() => {setQuery(""); searchInput?.current?.focus()}} icon={<MdClear size="1.5em" />}/>}
+        </InputRightElement>}
+        </InputGroup>
         { children }
+        
     </HStack>
-    {!focused || query.length < minQueryLength || query === "Custom" || (
-        <VStack mt={1} className="autocomplete" align="flex-start" divider={<Divider />} maxH="250px"
-            overflow="auto" border="2px solid rgba(255, 255, 255, 0.5)" borderRadius="5px" bg="black"
-            w="100%" p={2} position="absolute" zIndex={100}
-            onFocus={onFocus} onBlur={onBlur}
-            onMouseEnter={() => {try{setChildrenFocus(true)}catch{}}}
-            onMouseLeave={() => {try{setChildrenFocus(false)}catch{}}}
+    { focused && (query.length >= minQueryLength) && !isLoading ? (
+        <VStack mt={1} className="autocomplete" align="flex-start" divider={<Divider />} spacing={0} maxH="250px"
+            overflow="auto" border="1px solid rgba(59,48,82,1)" borderRadius="5px"
+            background="linear-gradient(53deg, rgba(71,78,136,1) 0%, rgba(2,0,70,1) 50%, rgba(71,78,136,1) 100%)"
+            w="100%" p={2} position={childPosition} zIndex={1000}
+            onFocus={onFocus} ref={resultsDiv}
+            display={isLoading || timeoutId ? "none" : ""}
+            onMouseDown={(e) => e.preventDefault()}
             >
-            {filteredData?.map((item) => (
+            {filteredData?.map((item, ind) => (
                 <AutoCompleteCard
-                    key={`obs-${item.code}`}
+                    tabIndex={ind}                    
+                    key={formatId(item)}
                     onClick={() => applyItem(item)}
                     children={format(item)}
-                    setChildrenFocus={setChildrenFocus}
-                />
-            ))}
-            {filteredData?.length === 0  ? (
-                <AutoCompleteCard className="autocomplete-card" children={"No Matches"} />
+                    id={`ac${ind}`}
+                    p={2}
+                />))}
+            {!timeoutId && filteredData?.length === 0 ? (
+                <AutoCompleteCard className="autocomplete-card" children={"No Matches"} onClick={() => document.activeElement.blur()}/>
             ) : null}
         </VStack>
-    )}
+    ) : null}
 </FormControl>)
 }

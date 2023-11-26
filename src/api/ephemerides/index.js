@@ -19,9 +19,22 @@ export const ephemeridesApi = createApi({
                 body: JSON.stringify(data),
             }),
         }),
+        getSatellites: builder.query({
+            query: (queryString) => ({
+                method: "GET",
+                url: "/satellites",
+                params: {query: queryString}
+            })
+        }),
+        getTleCount: builder.query({
+            query: () => ({
+                method: "GET",
+                url: "/tlecount",
+            })
+        })
     }),
 })
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useGetEphemerisMutation } = ephemeridesApi
+export const { useGetEphemerisMutation, useLazyGetSatellitesQuery, useGetTleCountQuery } = ephemeridesApi

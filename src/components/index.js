@@ -8,3 +8,5 @@ export * from "./myTable";
 export * from "./collapseJson";
 export * from "./autoComplete";
 export * from "./observatoryQuery";
+export * from "./myNumberInput";
+export * from "./dropDownMenu";

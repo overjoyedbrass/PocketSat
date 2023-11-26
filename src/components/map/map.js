@@ -17,6 +17,7 @@ import Control from "react-leaflet-custom-control";
 import { useDispatch, useSelector } from "react-redux";
 import { selectFormState, updateForm } from "../../store/formInput/locationForm";
 import { FaLocationCrosshairs } from "react-icons/fa6";
+import { getUserLocation } from "../../utils/helpers";
 
 
 const markerIcon = L.icon({
@@ -30,6 +31,13 @@ export const Map = ({ ...props }) => {
     const [showObservatories, setShowObservatories] = React.useState(true);
     const center = {...useSelector(selectFormState)};
 
+    document.getElementById("mapcontainer")?.setAttribute("disabled", true);
+
+    React.useEffect(() => {        
+        ['[class^="cluster"]', '[class^="leaflet"]'].forEach(selector =>
+            document.querySelectorAll(selector).forEach(el => el.tabIndex = -1)
+        )
+    }, [center.lat, center.lng, center.alt]);
     // eslint-disable-next-line eqeqeq
     if(center.lat == "-") {
         center.lat = ""
@@ -44,16 +52,20 @@ export const Map = ({ ...props }) => {
     }
 
     return (
-        <Flex {...props}>
+        <Flex {...props} tabIndex={-1}>
             <MapContainer
+                id="mapcontainer"
                 attributionControl={false}
                 center={center}
                 zoom={10}
+                tabindex={-1}
+                keyboard={false}
                 style={{
                     width: "100%",
                     height: "100%",
                     borderRadius: "10px",
                     zIndex: 10,
+                    tabIndex: -1,
                 }}>
                 {!showObservatories || <ShowObservatories
                     center={center}
@@ -61,29 +73,43 @@ export const Map = ({ ...props }) => {
                 />}
                 <MyMarker center={center} />
                 <TileLayer url={tilesUrl}></TileLayer>
-                <FullscreenControl position="topright" forceSeparateButton={true} />
+                <FullscreenControl position="topright" forceSeparateButton={true} tabindex={-1}/>
                 <Control position="topright">
                     <UseMyLocation />
                 </Control>
-                <Control prepend position='bottomright'>
+                <Control prepend position='bottomright' tabindex={-1}>
                     <HStack m={0} p={0}>
                         <CenterMapButton center={center} />
-                        <Button colorScheme="black" onClick={() => setShowObservatories(!showObservatories)} size={"xs"}>
+                        <Button tabIndex={-1} colorScheme="black" onClick={() => setShowObservatories(!showObservatories)} size={"xs"}>
                             {showObservatories ? "Hide observatories" : "Show observatories"}
                         </Button>
                     </HStack>
                 </Control>
+                <AutoRecenter center={center} />
+
             </MapContainer>
         </Flex>
     )
 }
 
+function AutoRecenter({center}) {
+    const map = useMap();
+    React.useEffect(() => {
+        map.flyTo(center);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [center.lat, center.lng]);
+    return null;
+}
+
 const MyMarker = ({center}) => {
     const dispatch = useDispatch();
     const markerRef = React.useRef();
-    const map = useMap();
     return (
-        <Marker 
+        <Marker
+            tabindex={-1}
+            style={{
+                tabIndex: -1
+            }}
             icon={markerIcon}
             position={[center.lat, center.lng]}
             draggable={true}
@@ -92,7 +118,6 @@ const MyMarker = ({center}) => {
                 if(marker) {
                     const loc = marker.getLatLng();
                     dispatch(updateForm({...loc, observatoryName: "Custom"}));
-                    map.flyTo(loc)
                 }
             }}}
             ref={markerRef}
@@ -102,35 +127,20 @@ const MyMarker = ({center}) => {
 
 
 const UseMyLocation = () => {
-    const map = useMap();
     const dispatch = useDispatch();
     function setCenter(location) {
         dispatch(updateForm({...location, observatoryName: "Current location"}));
-        map.flyTo(location);
     }
 
-    function getUserLocation(e) {
-        e.preventDefault();
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
-                setCenter({ lat: latitude, lng: longitude, alt: ""});
-            }, () => {
-                console.log("Unable to get location");
-            });
-        } else {
-            console.log("Geolocation not supported");
-        }
-    }
     return (<IconButton
         colorScheme="black"
         title="Your current location" 
-        onClick={getUserLocation} 
+        onClick={(e) => getUserLocation(e, setCenter)}
         onMouseDown={(e) => e.preventDefault()}
         aria-label="get user location" 
         size="sm"
         placeholder="Use your location"
+        tabIndex={-1}
         icon={<FaLocationCrosshairs size="1.5em" />} color="black"
     />)
 
@@ -141,5 +151,5 @@ const CenterMapButton = ({center}) => {
     function onClick() {
         map.flyTo(center);
     }
-    return (<Button colorScheme="black" size={"xs"} onClick={onClick}>Center to marker</Button>)
+    return (<Button colorScheme="black" size={"xs"} tabIndex={-1} onClick={onClick}>Center to marker</Button>)
 }

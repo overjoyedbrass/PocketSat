@@ -47,6 +47,8 @@ function ShowObservatories({ data }) {
 
     const onMove = useCallback(() => {
         updateMap();
+        document.querySelectorAll('[class^="leaflet"]').forEach(el => el.tabIndex = -1);
+        document.querySelectorAll('[class^="cluster"]').forEach(el => el.tabIndex = -1);
     }, [updateMap]);
 
     React.useEffect(() => {
@@ -127,9 +129,6 @@ function ShowObservatories({ data }) {
                         eventHandlers={{
                             click: () => {
                                 setCenter({lat: latitude, lng: longitude, alt: cluster.properties.alt, observatoryName: cluster.properties.name});
-                                map.flyTo(
-                                    [latitude, longitude],
-                                );
                             },
                         }}
                     >

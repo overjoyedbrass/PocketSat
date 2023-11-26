@@ -2,7 +2,7 @@ import { Button, Collapse, VStack, useBreakpointValue } from "@chakra-ui/react";
 import React from "react";
 import JSONPretty from "react-json-pretty";
 import "react-json-pretty/themes/adventure_time.css";
-import { download } from "../../util/helpers";
+import { download } from "../../utils/helpers";
             
 export const CollapseJson = ({data}) => {
     const [show, setShow] = React.useState(false);
@@ -10,7 +10,6 @@ export const CollapseJson = ({data}) => {
 
     const handleToggle = () => {
         if(!show) {
-            console.log("top", jsonRef.current?.offsetTop);
             setTimeout(() => 
                 window.scrollTo({
                     top: jsonRef.current.offsetTop,

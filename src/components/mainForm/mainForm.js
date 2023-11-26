@@ -18,16 +18,16 @@ export const Mainform = () => {
     }
     const Stack = useBreakpointValue({
         base: VStack,
-        md: HStack,
+        lg: HStack,
     });
     return (
     <VStack w="100%" as="form" onSubmit={submit} bgAttachment={"fixed"}>
-        <Stack alignItems="flex-start" flexWrap="wrap" w="100%" spacing={0} p={[0, 10, 10, 20]} pb={[0, 0, 0, 0]}>
+        <Stack alignItems="flex-start" flexWrap="wrap" w="100%" spacing={0} p={[0, 5, 20, 10, 20]} pb={[0, 0, 0, 0, 0]}>
             <TimeSubform datefrom={initState?.datefrom} dateto={initState?.dateto} step={initState?.step} />
             <LocationSubform lat={initState?.lat} lng={initState?.lng} alt={initState?.alt} />
             <DebrisObjectSubform objectid={initState?.objectId} />            
         </Stack>
-        <HStack position={"sticky"} bottom="0" w="100%" p={2} justify={{base: "flex-end", md: "center"}} zIndex={9999999} bg={{base: "rgba(0, 0, 0, 0.3)", md: "none"}}>
+        <HStack position={"sticky"} bottom="0" w="100%" p={2} justify={{base: "flex-end", md: "center"}} zIndex={999} bg={{base: "rgba(0, 0, 0, 0.3)", md: "none"}}>
             <Button type="submit" colorScheme="facebook" size={["sm", "sm", "md"]}>Get results</Button>
         </HStack>
     </VStack>)
