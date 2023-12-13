@@ -1,4 +1,4 @@
-import { Checkbox, Divider, FormControl, FormErrorMessage, FormHelperText, FormLabel, HStack, Heading, Input, Spinner, Tag, Textarea, VStack } from "@chakra-ui/react";
+import { Checkbox, Divider, FormControl, FormHelperText, FormLabel, HStack, Heading, Spinner, Tag, Textarea, VStack } from "@chakra-ui/react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetTleCountQuery, useLazyGetSatellitesQuery } from "../../api/ephemerides";
@@ -22,7 +22,7 @@ function matchSatellite(data, query) {
                 obs.intDes.toLowerCase().includes(kw))
          .every((_) => _))
 
-    return res.length >= MAX_ITEMS ? res.splice(0, MAX_ITEMS) : res
+    return res?.length >= MAX_ITEMS ? res.splice(0, MAX_ITEMS) : res
 }
 
 export const  DebrisObjectSubform = () => {
@@ -91,12 +91,12 @@ export const  DebrisObjectSubform = () => {
             />) : 
             (<FormControl isRequired>
                 <FormLabel>Your TLE</FormLabel>
-                <Textarea required={true} noOfLines={3} onChange={({target: {value}}) => dispatchCustomTLE(value)} value={customTLEValue} isInvalid={!validTle && customTLEValue.length > 0}/>
+                <Textarea required={true} noOfLines={3} onChange={({target: {value}}) => dispatchCustomTLE(value)} value={customTLEValue} isInvalid={!validTle && customTLEValue?.length > 0}/>
                 <HStack w="100%" justify="space-between" flexWrap={"wrap"}>
                 <FormHelperText>
                     Max 1 object (3 lines)
                 </FormHelperText>
-                {!validTle && customTLEValue.length > 0 ? (<FormHelperText color="red.200">
+                {!validTle && customTLEValue?.length > 0 ? (<FormHelperText color="red.200">
                     Invalid TLE format
                 </FormHelperText>) : null}
                 </HStack>
