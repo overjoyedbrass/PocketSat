@@ -34,7 +34,7 @@ export const ObservatoryQuery = ({ children }) => {
     function sideEffect(obs) {
         dispatch(updateForm({...obs}));
     }
-    return (<AutoComplete title="Observation location" getFilteredData={matchObservatory} format={format} formatId={formatId} sideEffect={sideEffect} outsideControl={obsName}>
+    return (<AutoComplete placeholder="Observatory name" title="Observation location" getFilteredData={matchObservatory} format={format} formatId={formatId} sideEffect={sideEffect} outsideControl={obsName}>
         { children }
     </AutoComplete>)
 

@@ -16,7 +16,6 @@ export const LocationSubform = () => {
             if(['', '-'].includes(value)) continue;
             if(!isNumeric(value)) return;
         }
-        console.log("custom loc");
         dispatch(updateForm({...location, observatoryName: obsName}));
     }
 

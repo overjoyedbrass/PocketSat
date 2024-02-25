@@ -2,6 +2,9 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initState = {
     objectId: "",
+    tle: "",
+    customTLE: false,
+    tleError: false,
 }
 
 const objectFormSlice = createSlice({
@@ -16,6 +19,6 @@ const objectFormSlice = createSlice({
     },
 });
 
-export const { updateForm } = objectFormSlice.actions
-export const selectFormState = (state) => (state.objectForm)
-export default objectFormSlice.reducer
+export const { updateForm } = objectFormSlice.actions;
+export const selectFormState = (state) => (state.objectForm);
+export default objectFormSlice.reducer;

@@ -6,6 +6,8 @@ const initState = {
     dateto: format(add(new Date(), {hours: 1}), "yyyy-MM-dd'T'HH:mm"),
     step: 1,
     stepUnits: "s",
+    numberOfCalculations: 0, 
+    useEndTime: true,
 }
 
 const timeFormSlice = createSlice({

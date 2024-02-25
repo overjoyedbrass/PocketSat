@@ -1,5 +1,5 @@
 /* eslint-disable eqeqeq */
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Divider, FormControl, FormLabel, HStack, IconButton, Input, InputGroup, InputRightElement, Spinner, VStack } from "@chakra-ui/react";
 import { MdClear } from "react-icons/md";
 
@@ -30,12 +30,12 @@ function ifNaNZero(number) {
     return isNaN(number) ? 0 : number;
 }
 
-export const AutoComplete = (
-    {title, children, getFilteredData, format, 
+export const AutoComplete = ({
+        title, children, getFilteredData, format, placeholder,
         formatId, minQueryLength=2, 
         sideEffect=null, apiCall=null, 
         isLoading=false, titleRight=null, outsideControl="",
-        childPosition="absolute"
+        childPosition="absolute",
     }) => {
     const [, forceUpdate] = React.useReducer(x => x + 1, 0);
     const [focusIndex, setFocusIndex] = React.useState(-1);
@@ -52,6 +52,7 @@ export const AutoComplete = (
     const onBlur = () => {
         forceUpdate();
     }
+
     function applyItem(obs) {
         setQuery(format(obs));
         if(sideEffect) {
@@ -79,7 +80,13 @@ export const AutoComplete = (
         setQuery(value);
     }
 
-    React.useEffect(() => {
+    function clearQuery() {
+        setQuery("");
+        sideEffect(null);
+        searchInput?.current?.focus();        
+    }
+
+    useEffect(() => {
         if(outsideControl) setQuery(outsideControl);
     }, [outsideControl]);
     
@@ -88,7 +95,7 @@ export const AutoComplete = (
         filteredData = getFilteredData(query);
     }
 
-    React.useEffect(() => {
+    useEffect(() => {
         resultsDiv?.current?.scrollIntoView({behavior: "smooth"});
     }, [filteredData?.length]);
 
@@ -136,7 +143,7 @@ export const AutoComplete = (
         <InputGroup>
         <Input
             variant="filled"
-            placeholder="Observatory name"
+            placeholder={placeholder}
             value={query}
             onChange={handleQuery}
             ref={searchInput}
@@ -146,7 +153,7 @@ export const AutoComplete = (
         />
         {!query || <InputRightElement>
             {(isLoading || timeoutId) && query.length >= minQueryLength ? <Spinner size="md" /> :
-            <IconButton variant="ghost" onClick={() => {setQuery(""); searchInput?.current?.focus()}} icon={<MdClear size="1.5em" />}/>}
+            <IconButton variant="ghost" onClick={clearQuery} icon={<MdClear size="1.5em" />}/>}
         </InputRightElement>}
         </InputGroup>
         { children }

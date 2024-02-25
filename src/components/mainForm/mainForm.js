@@ -1,34 +1,51 @@
-import React from "react";
-
-import { Button, HStack, VStack, useBreakpointValue } from "@chakra-ui/react";
+import { Button, Flex, HStack, VStack, useBreakpointValue } from "@chakra-ui/react";
 import { TimeSubform } from "../timeSubForm";
 import { LocationSubform } from "../locationSubForm";
 import { DebrisObjectSubform } from "../debrisObjectSubForm";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectFormState } from "../../store/formInput/objectForm";
 
 export const Mainform = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-
-    const initState = location.state;
+    const objectForm = useSelector(selectFormState)
+    const objectId = objectForm.objectId;
+    const tleError = objectForm.tleError;
+    const customTLEMode = objectForm.customTLE;
 
     function submit(e) {
         e.preventDefault();
+        if(objectId === "" && !customTLEMode) {
+            alert("Select object from the input field");
+            return;
+        }
         navigate("/results");
     }
-    const Stack = useBreakpointValue({
-        base: VStack,
-        lg: HStack,
+
+    const flexDirection = useBreakpointValue({
+        base: "column",
+        lg: "row",
     });
+    let error;
+    if(customTLEMode) {
+        error = tleError ? "Custom TLE Error" : "";
+    } else {
+        error = (objectId === "" || tleError) ? "Select object ID first" : "";
+    }
+    
+
     return (
     <VStack w="100%" as="form" onSubmit={submit} bgAttachment={"fixed"}>
-        <Stack alignItems="flex-start" flexWrap="wrap" w="100%" spacing={0} p={[0, 5, 20, 10, 20]} pb={[0, 0, 0, 0, 0]}>
-            <TimeSubform datefrom={initState?.datefrom} dateto={initState?.dateto} step={initState?.step} />
-            <LocationSubform lat={initState?.lat} lng={initState?.lng} alt={initState?.alt} />
-            <DebrisObjectSubform objectid={initState?.objectId} />            
-        </Stack>
+        <Flex alignItems="flex-start" flexWrap="wrap" w="100%" spacing={0} p={[0, 5, 20, 10, 20]} pb={[0, 0, 0, 0, 0]} flexDirection={flexDirection}>
+            <TimeSubform />
+            <LocationSubform />
+            <DebrisObjectSubform />            
+        </Flex>
         <HStack position={"sticky"} bottom="0" w="100%" p={2} justify={{base: "flex-end", md: "center"}} zIndex={999} bg={{base: "rgba(0, 0, 0, 0.3)", md: "none"}}>
-            <Button type="submit" colorScheme="facebook" size={["sm", "sm", "md"]}>Get results</Button>
+            <Button isDisabled={error} type="submit" colorScheme={error ? "red" : "facebook"} size={["sm", "sm", "md"]} title={error}>
+                Get results
+            </Button>
         </HStack>
     </VStack>)
 }
+

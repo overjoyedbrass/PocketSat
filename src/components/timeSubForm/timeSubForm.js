@@ -1,28 +1,27 @@
 import { Checkbox, Divider, FormLabel, HStack, Heading, Select, VStack } from "@chakra-ui/react";
 import React from "react";
-import { updateForm } from "../../store/formInput/timeForm";
-import { useDispatch } from "react-redux";
-import { format, add } from "date-fns";
+import { selectFormState, updateForm } from "../../store/formInput/timeForm";
+import { useDispatch, useSelector } from "react-redux";
 import { MyNumberInput } from "../myNumberInput";
 import { DateTimeInput } from "./dateTimeInput";
 import { IoSettingsOutline } from "react-icons/io5";
 import { DropDownMenu } from "../dropDownMenu/dropDownMenu";
 
 //must be inside of <form>{here}</form>
-export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
-    const [formState, setFormState] = React.useState({
-        datefrom: datefrom ?? format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-        dateto: dateto ?? format(add(new Date(), {hours: 1}), "yyyy-MM-dd'T'HH:mm"),
-        step: step ?? 10,
-        stepUnits:  "s",
-        noc: 1, //number of calculations
-    });
-    const [useEndTime, setUseEndTime] = React.useState(true);
+export const TimeSubform = () => {
+    const formState = useSelector(selectFormState);
+    const useEndTime = useSelector(selectFormState).useEndTime;
 
     const dispatch = useDispatch();
     const handleChange = ({target: {name, value}}) => {
-         setFormState((prev) => ({ ...prev, [name]: value }));
+        dispatch(updateForm({[name]: value}));
     }
+
+    function toggleUseEndTime() {
+        dispatch(updateForm({useEndTime: !useEndTime}));
+    }
+
+
     React.useEffect(() => {
         dispatch(updateForm(formState));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,9 +39,9 @@ export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
             <HStack w="100%">
                 <Heading size="md" m="auto">Select time frame</Heading>
                 <DropDownMenu icon={<IoSettingsOutline  size={"2em"}/>} children={
-                    (<HStack>
-                        <Checkbox name="useEndTime" isChecked={useEndTime} id="useEndTime" onChange={() => setUseEndTime(!useEndTime)} />
-                        <FormLabel userSelect={"none"} htmlFor="useEndTime">Use end time to specify number of calculations</FormLabel>                
+                    (<HStack w="100%">
+                        <Checkbox name="useEndTime" isChecked={useEndTime} id="useEndTime" onChange={toggleUseEndTime} />
+                        <FormLabel cursor={"pointer"} userSelect={"none"} htmlFor="useEndTime">Use end time to specify number of calculations</FormLabel>                
                     </HStack>)
                 }/>
             </HStack>
@@ -66,7 +65,9 @@ export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
             <MyNumberInput
                 title={"Number of calculations"}
                 min={1}
-                name="noc"
+                onChange={handleChange}
+                value={formState.numberOfCalculations}
+                name="numberOfCalculations"
                 max={100}
                 precision={0}
             />}
@@ -82,7 +83,7 @@ export const TimeSubform = ({ datefrom=null, dateto=null, step=null}) => {
                 }
                 helperText={`Delta time between calculations (${formState.step}${formState?.stepUnits})`}
             >
-                <Select variant="filled" name="stepUnits" onChange={handleChange} w="fit-content" disabled={true}>
+                <Select variant="filled" name="stepUnits" onChange={handleChange} value={formState.stepUnits} w="fit-content">
                     <option value="s">second{plural}</option>
                     <option value="m">minute{plural}</option>
                     <option value="h">hour{plural}</option>

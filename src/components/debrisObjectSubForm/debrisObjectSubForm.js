@@ -1,11 +1,11 @@
-import { Checkbox, Divider, FormControl, FormHelperText, FormLabel, HStack, Heading, Spinner, Tag, Textarea, VStack } from "@chakra-ui/react";
-import React from "react";
+import { Checkbox, Divider, FormControl, FormHelperText, FormLabel, HStack, Heading, IconButton, Spinner, Tag, Textarea, VStack } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetTleCountQuery, useLazyGetSatellitesQuery } from "../../api/ephemerides";
 import { AutoComplete } from "../autoComplete/autoComplete";
 import { selectFormState, updateForm } from "../../store/formInput/objectForm";
 import { DropDownMenu } from "../dropDownMenu/dropDownMenu";
-import { IoSettingsOutline } from "react-icons/io5";
+import { IoSettingsOutline, IoReload } from "react-icons/io5";
+
 import tleParser from "tle-parser";
 
 
@@ -27,33 +27,47 @@ function matchSatellite(data, query) {
 
 export const  DebrisObjectSubform = () => {
     const dispatch = useDispatch();
-
-    const customTLEValue = useSelector(selectFormState).tle
+    const customTLEValue = useSelector(selectFormState).tle;
+    const objectId = useSelector(selectFormState).objectId;
     const [trigger, result] = useLazyGetSatellitesQuery();    
     const data = result.data;
     const isLoading = result.isFetching;    
-    const [customTLE, setCustomTLE] = React.useState(false);
+    const customTLE = useSelector(selectFormState).customTLE;
+    
 
     function sideEffect(object) {
-        dispatch(updateForm({objectId: object.id}))
+        if(object == null) {
+            dispatch(updateForm({objectId: ""}));
+            return
+        }
+        dispatch(updateForm({objectId: object.id}));
     }
 
     function dispatchCustomTLE(value) {
-        if (value == "") {
-            dispatch(updateForm({tle: ""}))
-            return
+        if (value === "") {
+            dispatch(updateForm({tle: "", tleError: false}));
+            return;
         } 
         if(value) {
-            dispatch(updateForm({tle: value.split('\n').splice(0, 3).join('\n')}))
+            dispatch(updateForm({
+                tle: value.split('\n').splice(0, 3).join('\n'),
+                tleError: false,
+            }));
         }
     }
 
+    function toggleCustomTLEMode() {
+        dispatch(updateForm({customTLE: !customTLE}));
+    }
+
     let validTle = false;
-    if(customTLE) {
+    if(customTLE && customTLEValue.length > 0) {
         try {
-            tleParser(customTLEValue)
+            tleParser(customTLEValue);
             validTle = true;
-        } catch(err) {}
+        } catch(err) {
+            dispatch(updateForm({tleError: true}));
+        }
     }
 
     return (
@@ -68,16 +82,16 @@ export const  DebrisObjectSubform = () => {
             <HStack w="100%" m={0}>
                 <Heading size="md" m={"auto"}>Select object</Heading>
                     <DropDownMenu icon={<IoSettingsOutline  size={"2em"}/>} children={
-                        (<HStack>
-                            <Checkbox name="customtle" isChecked={customTLE} id="customtle" onChange={() => setCustomTLE(!customTLE)} />
-                            <FormLabel userSelect={"none"} htmlFor="customtle">Custom TLE</FormLabel>                
+                        (<HStack w="100%">
+                            <Checkbox name="customtle" isChecked={customTLE} id="customtle" onChange={toggleCustomTLEMode} />
+                            <FormLabel w="100%" userSelect={"none"} htmlFor="customtle" cursor={"pointer"}>Custom TLE</FormLabel>                
                         </HStack>)
                     }/>
                 </HStack>
             <Divider />
 
             { !customTLE ? 
-            (<AutoComplete  
+            (<><AutoComplete
                 title="Object id"
                 format={(item) => `${item.id} ${item.name} ${item.intDes}`}
                 formatId={(item) => `obj-${item.id}`}
@@ -86,12 +100,21 @@ export const  DebrisObjectSubform = () => {
                 isLoading={isLoading}
                 sideEffect={sideEffect}
                 minQueryLength={1}
+                placeholder="Object id"
                 titleRight={<TleCount />}
                 childPosition="relative"
-            />) : 
+            />
+                {!objectId || <Heading size="xs" w="100%">Selected object: {objectId}</Heading>}
+            </>) : 
             (<FormControl isRequired>
                 <FormLabel>Your TLE</FormLabel>
-                <Textarea required={true} noOfLines={3} onChange={({target: {value}}) => dispatchCustomTLE(value)} value={customTLEValue} isInvalid={!validTle && customTLEValue?.length > 0}/>
+                <Textarea 
+                    required={true} 
+                    noOfLines={3} 
+                    onChange={({target: {value}}) => dispatchCustomTLE(value)} 
+                    value={customTLEValue} 
+                    isInvalid={!validTle && customTLEValue?.length > 0}
+                />
                 <HStack w="100%" justify="space-between" flexWrap={"wrap"}>
                 <FormHelperText>
                     Max 1 object (3 lines)
@@ -101,15 +124,14 @@ export const  DebrisObjectSubform = () => {
                 </FormHelperText>) : null}
                 </HStack>
             </FormControl>)}
-
         </VStack>
     )
 }
 
 const TleCount = () => {
-    const { data, isLoading } = useGetTleCountQuery();
-    return <Tag colorScheme={data?.count > 0 ? "green" : "red"}>{
+    const { data, isLoading, refetch } = useGetTleCountQuery();
+    return <Tag colorScheme={isLoading ? "yellow" : data?.count > 0 ? "green" : "red"}>{
         isLoading ? <Spinner size="xs" /> :
-        <nobr>{`TLE: ${data? data.count : "error"}`}</nobr>
+        <nobr>{`TLE: ${data? data.count : "error"}`}&nbsp;<IconButton m={0} size="xs" color="red.200" colorScheme="red" bg="none" icon={<IoReload/>} onClick={refetch}>Retry</IconButton></nobr>
     }</Tag>
 }
