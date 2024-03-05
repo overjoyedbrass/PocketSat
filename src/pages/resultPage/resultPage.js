@@ -1,12 +1,13 @@
-import { Button, Heading, Table, TableContainer, Tbody, Th, Thead, Tr, VStack } from "@chakra-ui/react";
+import { Button, HStack, Heading, Table, TableContainer, Tbody, Th, Thead, Tr, VStack } from "@chakra-ui/react";
 import React from "react";
 import { useGetEphemerisMutation } from "../../api/ephemerides/index.js";
 import { selectFormState as selectLocationForm } from "../../store/formInput/locationForm.js";
 import { selectFormState as selectTimeForm } from "../../store/formInput/timeForm.js";
 import { selectFormState as selectObjectForm } from "../../store/formInput/objectForm.js";
 import { useSelector } from "react-redux";
-import { CollapseJson, Loader, MyTable } from "../../components";
+import { DataDisplay, Loader } from "../../components";
 import { useNavigate } from "react-router-dom";
+import { MdOutlineKeyboardBackspace } from "react-icons/md";
 
 
 function collectFormFields(locationForm, timeForm, objectForm) {
@@ -54,22 +55,30 @@ export const ResultPage = () => {
     if(isLoading) {
         return <Loader loadInformation={"Calculating results. . ."}/>;
     }
-    const columns = [
-        "Date (UTC)",
-        "Az [deg]",
-        "h [deg]",
-        "R.A. [deg]",
-        "dec [deg]",
-        "Phase [deg]",
-        "Obs. r. [km]",
-        "Angular [arcm/min]",
-        "Shadow",
-    ];
+    
+
+    if(data) {
+        return (<>
+            <HStack w="100%" justify="center" p={2} spacing={0} position="relative">
+                <Button colorScheme={"blue"} left={2} position={"absolute"} onClick={() => navigate("/")} leftIcon={<MdOutlineKeyboardBackspace />}>
+                    Do another calculation
+                </Button>
+                <Heading>
+                    Results
+                </Heading>
+            </HStack>
+            <DataDisplay data={ data }/>
+        </>
+        )
+    }
 
     return (<VStack>
-        <Heading>
-            Summary
-        </Heading>
+        <HStack justify={"center"} w="100%" spacing={0} position="relative" p={2}>
+            <Button colorScheme={missingValue.length > 0 ? "red" : "blue"} left={2} position={"absolute"} onClick={() => navigate("/")} leftIcon={<MdOutlineKeyboardBackspace />}>
+                {missingValue.length > 0 ? `Fill all input fields${errors.length > 0 ? " and fix errors" : ""}` : "Change inputs" }
+            </Button>
+            <Heading>Summary</Heading>
+        </HStack>
         <TableContainer borderRadius="10px">
             <Table variant="simple">
                 <Thead>
@@ -96,14 +105,7 @@ export const ResultPage = () => {
                 </Tbody>
             </Table>
         </TableContainer>
-        <Button onClick={() => navigate("/")}>{missingValue.length > 0 ? `Fill all input fields${errors.length > 0 ? " and fix errors" : ""}` : "Change inputs" }</Button>
-
-        <Heading pt={10}>
-            Results
-        </Heading>
-
-            {data == null && !missingValue.length ? <Button onClick={getResults}>Calculate ephemeris</Button> : null}
-            {!data || (<MyTable data={data} columns={columns} />)}
-            {!data || <CollapseJson data={data} />}
+            {data == null && !missingValue.length ? 
+            <Button colorScheme="green" onClick={getResults}>Calculate ephemeris</Button> : null}
         </VStack>)
 }

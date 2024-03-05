@@ -42,7 +42,7 @@ export const Mainform = () => {
             <DebrisObjectSubform />            
         </Flex>
         <HStack position={"sticky"} bottom="0" w="100%" p={2} justify={{base: "flex-end", md: "center"}} zIndex={999} bg={{base: "rgba(0, 0, 0, 0.3)", md: "none"}}>
-            <Button isDisabled={error} type="submit" colorScheme={error ? "red" : "facebook"} size={["sm", "sm", "md"]} title={error}>
+            <Button isDisabled={error} type="submit" colorScheme={error ? "red" : "green"} size={["sm", "sm", "md"]} title={error}>
                 Get results
             </Button>
         </HStack>

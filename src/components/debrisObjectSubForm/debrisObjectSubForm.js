@@ -132,6 +132,10 @@ const TleCount = () => {
     const { data, isLoading, refetch } = useGetTleCountQuery();
     return <Tag colorScheme={isLoading ? "yellow" : data?.count > 0 ? "green" : "red"}>{
         isLoading ? <Spinner size="xs" /> :
-        <nobr>{`TLE: ${data? data.count : "error"}`}&nbsp;<IconButton m={0} size="xs" color="red.200" colorScheme="red" bg="none" icon={<IoReload/>} onClick={refetch}>Retry</IconButton></nobr>
+        <nobr>
+            {`TLE: ${data ? data.count : "error"}`}
+            &nbsp;
+            {!data ? <IconButton m={0} size="xs" color="red.200" colorScheme="red" bg="none" icon={<IoReload/>} onClick={refetch} /> : null }
+        </nobr>
     }</Tag>
 }

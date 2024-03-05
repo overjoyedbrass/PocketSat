@@ -78,9 +78,7 @@ export const TimeSubform = () => {
                 name="step"
                 onChange={(val) => handleChange({target: {name: "step", value: val}})}
                 min={1}
-                max={
-                    {s: 59, m: 59, h: 24}[formState.stepUnits]
-                }
+                max={500}
                 helperText={`Delta time between calculations (${formState.step}${formState?.stepUnits})`}
             >
                 <Select variant="filled" name="stepUnits" onChange={handleChange} value={formState.stepUnits} w="fit-content">
