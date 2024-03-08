@@ -77,10 +77,9 @@ export const  DebrisObjectSubform = () => {
             w="100%"
             alignItems="center"
             spacing={4}
-            transition={"flex 10s ease-out"}
             p={3}>
             <HStack w="100%" m={0}>
-                <Heading size="md" m={"auto"}>Select object</Heading>
+                <Heading size="md" m={"auto"}>Choose object</Heading>
                     <DropDownMenu icon={<IoSettingsOutline  size={"2em"}/>} children={
                         (<HStack w="100%">
                             <Checkbox name="customtle" isChecked={customTLE} id="customtle" onChange={toggleCustomTLEMode} />

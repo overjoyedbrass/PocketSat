@@ -1,14 +1,16 @@
-import { Button, Heading, VStack } from "@chakra-ui/react";
+import { Box, Button, VStack } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 
 const [width, height] = [500, 500];
-const MIN_RADIUS = width/2-10;
+const MIN_RADIUS = width/2-30;
 const MAX_ALTITUDE = 90;
 const MAX_RADIUS = 50*MIN_RADIUS;
 const ZOOM_DELTA = 100;
 const MAX_DRAW = 100;
 const ZOOM_DELTA_RATIO = ZOOM_DELTA/MIN_RADIUS;
 const DARK_GREY = "#555555";
+const CLOCK_DELTA = Math.PI/12;
+
 function preventDefault(e){e.preventDefault()};
 
 function drawCircle(ctx, x, y, r, color, fill="") {
@@ -66,12 +68,29 @@ function connectDots(ctx, dots, lineColor) {
     ctx.stroke();
 }
 
+function radiansToDegrees(rad) {
+    return Math.ceil(180/Math.PI*rad);
+}
+
 function drawClock(ctx, radius, x0, y0) {
     ctx.beginPath();
     ctx.strokeStyle = DARK_GREY;
-    for(let uhol = 0; uhol <= 2*Math.PI; uhol += Math.PI/8) {
+    ctx.fillStyle = "white";
+    ctx.font = "12px Segoe UI";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const TEXT_DISTANCE_FROM_CIRCLE = 15;
+    var text_angle = 0;
+    var text_angle_delta = radiansToDegrees(CLOCK_DELTA);
+    for(let angle = 0; angle <= 2*Math.PI; angle += CLOCK_DELTA) {
+        const x = Math.cos(angle);
+        const y = Math.sin(angle);
         ctx.moveTo(x0, y0);
-        ctx.lineTo(x0 + Math.cos(uhol)*radius, y0 + Math.sin(uhol)*radius);
+        ctx.lineTo(x0 + x*radius, y0 + y*radius);
+        if(angle < 2*Math.PI-CLOCK_DELTA) {
+            ctx.fillText(`${text_angle}°`, x0+x*(radius+TEXT_DISTANCE_FROM_CIRCLE), y0+y*(radius+TEXT_DISTANCE_FROM_CIRCLE));
+        }
+        text_angle += text_angle_delta;
     }
     ctx.stroke();
     for(let angle = 0; angle <= 90; angle += 10) {
@@ -170,22 +189,22 @@ export const SphereDataDisplay = ({ data }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [context, radius, offset]);
 
-    return (<VStack>
-        <Button onClick={() => {setRadius(MIN_RADIUS); setOffset({x: 0, y: 0});}}>Reset</Button>
-            <canvas ref={canvasRef} id="sphereCanvas" height={height} width={width}
-                onDragStart={preventDefault}
-                onDrag={preventDefault}
-                onDragEnd={preventDefault}
-                onMouseDown={dragStart}
-                onMouseMove={drag}
-                onMouseLeave={dragEnd}
-                onMouseUp={dragEnd}
-                onWheel={onScroolWheel}
-                // onTouchStart={dragStart}
-                // onTouchMove={drag}
-                // onTouchEnd={dragEnd}
+    return (<Box position="relative">
+        <canvas ref={canvasRef} id="sphereCanvas" height={height} width={width}
+            onDragStart={preventDefault}
+            onDrag={preventDefault}
+            onDragEnd={preventDefault}
+            onMouseDown={dragStart}
+            onMouseMove={drag}
+            onMouseLeave={dragEnd}
+            onMouseUp={dragEnd}
+            onWheel={onScroolWheel}
+            // onTouchStart={dragStart}
+            // onTouchMove={drag}
+            // onTouchEnd={dragEnd}
                 
-                style={{borderRadius: "10px", cursor: "grab", border: `1px solid rgba(255,255,255, 0.2)`}}
+            style={{borderRadius: "10px", cursor: "grab", border: `1px solid rgba(255,255,255, 0.2)`}}
             />
-        </VStack>)
+            <Button size="xs" colorScheme="black" position="absolute" top={1} right={1} onClick={() => {setRadius(MIN_RADIUS); setOffset({x: 0, y: 0});}}>Reset</Button>
+        </Box>)
 }

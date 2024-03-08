@@ -5,6 +5,7 @@ import { DebrisObjectSubform } from "../debrisObjectSubForm";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectFormState } from "../../store/formInput/objectForm";
+import { FovSubForm } from "../fovSubForm";
 
 export const Mainform = () => {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ export const Mainform = () => {
     const objectId = objectForm.objectId;
     const tleError = objectForm.tleError;
     const customTLEMode = objectForm.customTLE;
+    const desired_function = "FOV"
 
     function submit(e) {
         e.preventDefault();
@@ -39,7 +41,8 @@ export const Mainform = () => {
         <Flex alignItems="flex-start" flexWrap="wrap" w="100%" spacing={0} p={[0, 5, 20, 10, 20]} pb={[0, 0, 0, 0, 0]} flexDirection={flexDirection}>
             <TimeSubform />
             <LocationSubform />
-            <DebrisObjectSubform />            
+            {/*eslint-disable-next-line eqeqeq*/}
+            {desired_function == "FOV" ? (<FovSubForm />) : (<DebrisObjectSubform />)}
         </Flex>
         <HStack position={"sticky"} bottom="0" w="100%" p={2} justify={{base: "flex-end", md: "center"}} zIndex={999} bg={{base: "rgba(0, 0, 0, 0.3)", md: "none"}}>
             <Button isDisabled={error} type="submit" colorScheme={error ? "red" : "green"} size={["sm", "sm", "md"]} title={error}>

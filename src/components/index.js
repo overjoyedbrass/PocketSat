@@ -13,3 +13,4 @@ export * from "./rawDataDisplay";
 export * from "./graphDataDisplay";
 export * from "./sphereDataDisplay";
 export * from "./dataDisplay";
+export * from "./fovSubForm";

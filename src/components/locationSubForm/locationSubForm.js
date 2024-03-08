@@ -1,4 +1,4 @@
-import { Divider,  IconButton,  Heading, VStack } from "@chakra-ui/react";
+import { Divider,  IconButton,  Heading, VStack, HStack } from "@chakra-ui/react";
 import React from "react";
 import { Map } from "../map";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,7 +26,7 @@ export const LocationSubform = () => {
             flex={2}
             alignItems="center"
             w="100%" spacing={4}>
-            <Heading size="md">Choose your location</Heading>
+            <Heading size="md">Your location</Heading>
             <Divider />
             <ObservatoryQuery>
                 <IconButton
@@ -40,9 +40,11 @@ export const LocationSubform = () => {
                     icon={<FaLocationCrosshairs size="1.5em" />} color="black"
                 />
             </ObservatoryQuery>
-            <MyNumberInput tabIndex={100} title="Latitude" value={center.lat} onChange={(value) => setCenter({lat: value})} step={0.10} min={-90} max={90} />
-            <MyNumberInput tabIndex={101} title="Longitude" value={center.lng} onChange={(value) => setCenter({lng: value})} step={0.10} min={-180} max={180} />
-            <MyNumberInput tabIndex={102} title="Altitude" value={center.alt} onChange={(value) => setCenter({alt: value})} step={1} helperText="meters (m)" min={-10000} max={10000} />
+            <HStack w="100%">
+                <MyNumberInput tabIndex={100} title="Latitude" value={center.lat} onChange={(value) => setCenter({lat: value})} helperText="[degrees]" step={0.10} min={-90} max={90} size="sm" />
+                <MyNumberInput tabIndex={101} title="Longitude" value={center.lng} onChange={(value) => setCenter({lng: value})} helperText="[degrees]" step={0.10} min={-180} max={180} size="sm" />
+                <MyNumberInput tabIndex={102} title="Altitude" value={center.alt} onChange={(value) => setCenter({alt: value})} step={1} helperText="[meters]" min={-10000} max={10000} size="sm" />
+            </HStack>
             <Map
                 width="100%"
                 height="300px"
