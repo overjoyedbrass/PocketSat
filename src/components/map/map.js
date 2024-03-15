@@ -95,7 +95,7 @@ export const Map = ({ ...props }) => {
 function AutoRecenter({center}) {
     const map = useMap();
     React.useEffect(() => {
-        map.flyTo(center);
+        map.panTo(center);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [center.lat, center.lng]);
     return null;
@@ -149,7 +149,7 @@ const UseMyLocation = () => {
 const CenterMapButton = ({center}) => {
     const map = useMap();
     function onClick() {
-        map.flyTo(center);
+        map.panTo(center);
     }
     return (<Button colorScheme="black" size={"xs"} tabIndex={-1} onClick={onClick}>Center to marker</Button>)
 }

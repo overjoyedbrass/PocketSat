@@ -1,10 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
-// Or from '@reduxjs/toolkit/query/react'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import { ephemeridesApi } from '../api/ephemerides'
 import timeFormReducer from './formInput/timeForm'
 import locationFormReducer from './formInput/locationForm'
 import objectFormReducer from './formInput/objectForm'
+import fovFormReducer from "./formInput/fovForm";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +13,7 @@ export const store = configureStore({
     timeForm: timeFormReducer,
     locationForm: locationFormReducer,
     objectForm: objectFormReducer,
+    fovForm: fovFormReducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
