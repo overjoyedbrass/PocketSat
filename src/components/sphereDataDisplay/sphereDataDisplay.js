@@ -1,4 +1,4 @@
-import { Box, Button, VStack } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 
 const [width, height] = [500, 500];

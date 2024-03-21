@@ -42,7 +42,9 @@ export const ResultPage = () => {
     )
     formState.observatoryName = formState.observatoryName || "Custom";
     const navigate = useNavigate();
-    const missingValue = Object.values(formState).filter(val => ["", 0, -1].includes(val));
+    const missingValue = Object.values(formState).filter(val => ["", -1].includes(val));
+
+    console.log(formState);
     const errors = formState.errors;
 
     function getResults() {

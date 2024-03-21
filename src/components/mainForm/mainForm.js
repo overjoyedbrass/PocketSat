@@ -13,7 +13,7 @@ export const Mainform = () => {
     const objectId = objectForm.objectId;
     const tleError = objectForm.tleError;
     const customTLEMode = objectForm.customTLE;
-    const desired_function = "FOV"
+    const desired_function = ""
 
     function submit(e) {
         e.preventDefault();
